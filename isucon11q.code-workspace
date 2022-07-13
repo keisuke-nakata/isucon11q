@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"go.goroot": "/Users/keisuke.nakata/.gvm/gos/go1.18.3",
+		"go.gopath": "/Users/keisuke.nakata/.gvm/pkgsets/go1.18.3/global"
+	}
+}
