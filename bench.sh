@@ -27,7 +27,7 @@ mkdir -p $result_dir
 ###
 cmd="cd ${REPO_ROOT_DIR} && git pull origin main && bash before_bench.sh"
 # appserver 1 (this)
-$cmd
+bash -c "$cmd"
 # appserver 2
 ssh -i ~/.ssh/isucon11q_appserver isucon@$APPSERVER2_PRIVATE_IP $cmd
 # appserver 3
@@ -53,7 +53,7 @@ git push origin main
 # appserver 1 (this)
 node_result_dir=${result_dir}/appserver1
 cmd="cd ${REPO_ROOT_DIR} && git pull origin main && NODE_RESULT_DIR=${node_result_dir} bash after_bench.sh"
-$cmd
+bash -c "$cmd"
 git fetch
 git merge origin/$node_result_dir
 # appserver 2
