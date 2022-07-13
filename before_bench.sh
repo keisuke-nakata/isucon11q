@@ -2,7 +2,7 @@ readonly REPO_ROOT_DIR=/home/isucon/webapp
 # readonly NGINX_ACCESS_LOG=/var/log/nginx/access.log
 # readonly NGINX_ERROR_LOG=/var/log/nginx/error.log
 # readonly MYSQL_SLOW_LOG=/var/log/mysql/mysql-slow.log
-readonly MYSQL_CONF_DIR=/etc/mysql/conf.d
+readonly MYSQL_CONF_DIR=/etc/mysql/mariadb.conf.d
 # readonly NGINX_CONF_DIR=/etc/nginx
 
 ###
@@ -24,7 +24,7 @@ readonly MYSQL_CONF_DIR=/etc/mysql/conf.d
 cp ${REPO_ROOT_DIR}/conf/env.sh /home/isucon/
 
 # deploy mysql
-sudo cp ${REPO_ROOT_DIR}/conf/mysql/my.cnf $MYSQL_CONF_DIR/
+sudo cp ${REPO_ROOT_DIR}/conf/mysql/50-server.cnf $MYSQL_CONF_DIR/
 sudo systemctl restart mysql.service
 sudo systemctl restart mysqld.service
 
