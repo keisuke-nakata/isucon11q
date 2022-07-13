@@ -7,84 +7,15 @@ readonly RESULT_BASE_DIR=$REPO_ROOT_DIR/result
 # readonly MYSQL_CONF_DIR=/etc/mysql/mysql.conf.d
 # readonly NGINX_CONF_DIR=/etc/nginx
 
-if (( $# != 1 )); then
-  echo "Usage: $0 <change log>"
-  exit 1
-else
-  readonly changelog=$1
-fi
-
-set -eux
-
-# get latest changes
-git pull origin main
-readonly commit_id=$(git rev-parse HEAD)
-
-# create result dir
-readonly dt=$(date +%Y%m%d-%H%M%S)
-readonly result_dir=${RESULT_BASE_DIR}/${dt}_${commit_id}
-mkdir -p $result_dir
-
-###
-# refresh logs
-###
-
-# # refresh nginx access & error log
-# sudo truncate --size 0 $NGINX_ACCESS_LOG $NGINX_ERROR_LOG
-
-# # refresh mysql slow query log
-# sudo truncate --size 0 $MYSQL_SLOW_LOG
-# sudo mysqladmin flush-logs
-
-###
-# deploy
-###
-
-# # deploy mysql
-# sudo cp ${REPO_ROOT_DIR}/conf/mysql/mysql.cnf $MYSQL_CONF_DIR/
-# sudo cp ${REPO_ROOT_DIR}/conf/mysql/mysqld.cnf $MYSQL_CONF_DIR/
-# sudo systemctl restart mysql
-
-# for file in $(find $MYSQL_DEPLOY_DIR -type f); do
-#   mysql --force isuconp < $file
-# done
-
-# # deploy nginx
-# sudo cp $REPO_ROOT_DIR/conf/nginx/nginx.conf $NGINX_CONF_DIR/
-# sudo cp $REPO_ROOT_DIR/conf/nginx/isucon.conf $NGINX_CONF_DIR/sites-enabled/
-# sudo systemctl reload nginx
-
-# # deploy go
-# (
-#   cd $REPO_ROOT_DIR
-#   cd webapp/golang
-#   bash setup.sh
-# )
-# sudo systemctl restart isu-go
-
-###
-# prepare benchmark
-###
-
-# # start collectl
-# readonly collectl_result_dir=$result_dir/collectl
-# mkdir -p $collectl_result_dir
-# collectl -scdm -f $collectl_result_dir -P &
-# readonly collectl_job_id=$!
-
-# # start profile
-# readonly profile_tmp_dir=$(mktemp -d)
-# curl "http://localhost:80/pprof/start?path=${profile_tmp_dir}/"
-
-###
-# run benchmark
-###
-echo "Run benchmark, and input your score: "
-read score
+node_result_dir=$NODE_RESULT_DIR
 
 ###
 # collect result
 ###
+node_result_dir=$result_dir/$node_name
+mkdir -p $node_result_dir
+
+echo "this is $node_name" > $node_result_dir/hoge.log
 
 # # stop profile & analyze
 # curl "http://localhost:80/pprof/stop"
@@ -113,15 +44,14 @@ read score
 # # sudo pt-query-digest $MYSQL_SLOW_LOG > $mysql_result_dir/pt-query-digest.log  # 遅いので後回し
 # # sudo gzip --best -c $MYSQL_SLOW_LOG > $mysql_result_dir/mysql-slow.log.gz  # 重すぎる
 
-# add summary row
-echo "|${dt}|${score}|${commit_id}|${changelog}|" >> $RESULT_BASE_DIR/summary.md
-
 # git push
-sudo chown -R isucon $result_dir
-sudo chgrp -R isucon $result_dir
+sudo chown -R isucon $node_result_dir
+sudo chgrp -R isucon $node_result_dir
+git checkout -b $node_result_dir
 git add --all
-git commit -m "${commit_id}" -m "committed by deploy.sh"
-git push origin main
+git commit -m "committed by after_bench.sh"
+git push -u origin $node_result_dir
+git checkout main
 
 # # 後回しにされた処理を実行
 # sudo pt-query-digest $MYSQL_SLOW_LOG > $mysql_result_dir/pt-query-digest.log
