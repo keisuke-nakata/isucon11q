@@ -12,10 +12,9 @@ node_result_dir=$NODE_RESULT_DIR
 ###
 # collect result
 ###
-node_result_dir=$result_dir/$node_name
 mkdir -p $node_result_dir
 
-echo "this is $node_name" > $node_result_dir/hoge.log
+echo "this is $node_result_dir" > $node_result_dir/hoge.log
 
 # # stop profile & analyze
 # curl "http://localhost:80/pprof/stop"
