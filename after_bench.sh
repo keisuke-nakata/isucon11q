@@ -46,10 +46,10 @@ echo "this is $node_result_dir" > $node_result_dir/hoge.log
 # git push
 sudo chown -R isucon $node_result_dir
 sudo chgrp -R isucon $node_result_dir
-git checkout -b $node_result_dir
+git checkout -b "auto${node_result_dir}"
 git add --all
 git commit -m "committed by after_bench.sh"
-git push -u origin $node_result_dir
+git push -u origin "auto${node_result_dir}"
 git checkout main
 
 # # 後回しにされた処理を実行
