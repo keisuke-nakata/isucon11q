@@ -25,7 +25,7 @@ mkdir -p $result_dir
 ###
 # before bench
 ###
-cmd="(cd ${REPO_ROOT_DIR}; git pull origin main; bash before_bench.sh)"
+cmd="cd ${REPO_ROOT_DIR}; git pull origin main; bash before_bench.sh"
 # appserver 1 (this)
 $cmd
 # appserver 2
@@ -52,19 +52,19 @@ git push origin main
 ###
 # appserver 1 (this)
 node_result_dir=${result_dir}/appserver1
-cmd="(cd ${REPO_ROOT_DIR}; git pull origin main; NODE_RESULT_DIR=${node_result_dir} bash after_bench.sh)"
+cmd="cd ${REPO_ROOT_DIR}; git pull origin main; NODE_RESULT_DIR=${node_result_dir} bash after_bench.sh"
 $cmd
 git fetch
 git merge origin/$node_result_dir
 # appserver 2
 node_result_dir=${result_dir}/appserver2
-cmd="(cd ${REPO_ROOT_DIR}; git pull origin main; NODE_RESULT_DIR=${node_result_dir} bash after_bench.sh)"
+cmd="cd ${REPO_ROOT_DIR}; git pull origin main; NODE_RESULT_DIR=${node_result_dir} bash after_bench.sh"
 ssh -i ~/.ssh/isucon11q_appserver isucon@$APPSERVER2_PRIVATE_IP $cmd
 git fetch
 git merge origin/$node_result_dir
 # appserver 3
 node_result_dir=${result_dir}/appserver3
-cmd="(cd ${REPO_ROOT_DIR}; git pull origin main; NODE_RESULT_DIR=${node_result_dir} bash after_bench.sh)"
+cmd="cd ${REPO_ROOT_DIR}; git pull origin main; NODE_RESULT_DIR=${node_result_dir} bash after_bench.sh"
 ssh -i ~/.ssh/isucon11q_appserver isucon@$APPSERVER3_PRIVATE_IP $cmd
 git fetch
 git merge origin/$node_result_dir
