@@ -20,6 +20,9 @@ readonly MYSQL_CONF_DIR=/etc/mysql/conf.d
 # deploy
 ###
 
+# deploy env.sh
+cp ${REPO_ROOT_DIR}/conf/env.sh /home/isucon/
+
 # deploy mysql
 sudo cp ${REPO_ROOT_DIR}/conf/mysql/my.cnf $MYSQL_CONF_DIR/
 sudo systemctl restart mysql.service
