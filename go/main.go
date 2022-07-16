@@ -1100,9 +1100,9 @@ func getTrend(c echo.Context) error {
 		") " +
 		"SELECT " +
 		"  jia_isu_uuid, " +
-		"  timestamp, " +
-		"  condition, " +
-		"  id, " +
+		"  `timestamp`, " +
+		"  `condition`, " +
+		"  `id`, " +
 		"  `character` " +
 		" FROM r WHERE rn = 1 ORDER BY `character`, rev_timestamp;"
 	err := db.Select(&tmpTrendRecordList, query)
