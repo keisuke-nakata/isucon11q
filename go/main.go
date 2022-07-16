@@ -1187,7 +1187,7 @@ func getTrend(c echo.Context) error {
 	}
 	c.Logger().Errorf("len(lastIsuConditions): %v", len(lastIsuConditions))
 
-	trendResponseMap := make(map[string]TrendResponse)
+	trendResponseMap := make(map[string]*TrendResponse)
 
 	// character := "dummy"
 	// var characterInfoIsuConditions []*TrendCondition
@@ -1198,7 +1198,7 @@ func getTrend(c echo.Context) error {
 		c.Logger().Errorf("loop: %v, %v", lastIsuCondition.IsuID, character)
 		trendResponse, ok := trendResponseMap[character]
 		if !ok {
-			trendResponse = TrendResponse{
+			trendResponse = &TrendResponse{
 				Character: character,
 				Info:      make([]*TrendCondition, 0, 3),
 				Warning:   make([]*TrendCondition, 0, 3),
@@ -1265,7 +1265,7 @@ func getTrend(c echo.Context) error {
 			return trendResponse.Critical[i].Timestamp > trendResponse.Critical[j].Timestamp
 		})
 		c.Logger().Errorf("after sort critical: %v", trendResponse.Critical)
-		res = append(res, trendResponse)
+		res = append(res, *trendResponse)
 	}
 	c.Logger().Errorf("res: %v", res)
 
