@@ -24,7 +24,7 @@ mkdir -p $node_result_dir
 # alp
 readonly alp_result_dir=$node_result_dir/alp
 mkdir -p $alp_result_dir
-sudo alp json --file $NGINX_ACCESS_LOG --sort=sum -r -m "/api/condition/\w+,/api/isu/\w+" > $alp_result_dir/alp.log
+sudo alp json --file $NGINX_ACCESS_LOG --sort=sum -r -m "/api/condition/.{36},/api/isu/.{36}/graph,/api/isu/.{36}/icon,/isu/.{36}/condition,/isu/.{36}/graph,/isu/.{36}" > $alp_result_dir/alp.log
 
 # analyze mysql slow query log
 readonly mysql_result_dir=$node_result_dir/mysql
