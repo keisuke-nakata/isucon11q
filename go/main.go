@@ -1160,13 +1160,11 @@ func getTrend(c echo.Context) error {
 		c.Logger().Errorf("db error: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	c.Logger().Errorf("len(isuIDs): %v", len(isuIDs))
 	cacheLastIsuConditions, err := memcacheClient.GetMulti(isuIDs)
 	if err != nil {
 		c.Logger().Errorf("memcached error: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	c.Logger().Errorf("cacheLastIsuConditions: %v", cacheLastIsuConditions)
 	lastIsuConditions := make([]LastIsuCondition, 0, 100)
 	for _, isuID := range isuIDs {
 		var lastIsuCondition LastIsuCondition
@@ -1174,9 +1172,7 @@ func getTrend(c echo.Context) error {
 		if !ok { // cache miss
 			// c.Logger().Errorf("cache error (%v): %v", isuID, err)
 			// return c.NoContent(http.StatusInternalServerError)
-			c.Logger().Errorf("cache miss: %v", isuID)
 		} else { // cache hit
-			c.Logger().Errorf("cache hit: %v", isuID)
 			err = json.Unmarshal(cacheLastIsuCondition.Value, &lastIsuCondition)
 			if err != nil {
 				c.Logger().Errorf("Unmarshal error: %v", err)
@@ -1185,14 +1181,9 @@ func getTrend(c echo.Context) error {
 			lastIsuConditions = append(lastIsuConditions, lastIsuCondition)
 		}
 	}
-	c.Logger().Errorf("len(lastIsuConditions): %v", len(lastIsuConditions))
 
 	trendResponseMap := make(map[string]*TrendResponse)
 
-	// character := "dummy"
-	// var characterInfoIsuConditions []*TrendCondition
-	// var characterWarningIsuConditions []*TrendCondition
-	// var characterCriticalIsuConditions []*TrendCondition
 	for _, lastIsuCondition := range lastIsuConditions {
 		character := lastIsuCondition.Character
 		trendResponse, ok := trendResponseMap[character]
@@ -1206,21 +1197,6 @@ func getTrend(c echo.Context) error {
 			trendResponseMap[character] = trendResponse
 		}
 
-		// if record.Character != character {
-		// 	if character != "dummy" {
-		// 		res = append(res,
-		// 			TrendResponse{
-		// 				Character: character,
-		// 				Info:      characterInfoIsuConditions,
-		// 				Warning:   characterWarningIsuConditions,
-		// 				Critical:  characterCriticalIsuConditions,
-		// 			})
-		// 	}
-		// 	character = record.Character
-		// 	characterInfoIsuConditions = []*TrendCondition{}
-		// 	characterWarningIsuConditions = []*TrendCondition{}
-		// 	characterCriticalIsuConditions = []*TrendCondition{}
-		// }
 		conditionLevel, err := calculateConditionLevel(lastIsuCondition.Condition)
 		if err != nil {
 			c.Logger().Error(err)
@@ -1239,14 +1215,6 @@ func getTrend(c echo.Context) error {
 			trendResponse.Critical = append(trendResponse.Critical, &trendCondition)
 		}
 	}
-	c.Logger().Errorf("trendResponseMap: %v", trendResponseMap)
-	// res = append(res,
-	// 	TrendResponse{
-	// 		Character: character,
-	// 		Info:      characterInfoIsuConditions,
-	// 		Warning:   characterWarningIsuConditions,
-	// 		Critical:  characterCriticalIsuConditions,
-	// 	})
 	res := []TrendResponse{}
 	for _, trendResponse := range trendResponseMap {
 		sort.Slice(trendResponse.Info, func(i, j int) bool {
@@ -1260,7 +1228,6 @@ func getTrend(c echo.Context) error {
 		})
 		res = append(res, *trendResponse)
 	}
-	c.Logger().Errorf("res: %v", res)
 
 	return c.JSON(http.StatusOK, res)
 }
@@ -1305,12 +1272,21 @@ func postIsuCondition(c echo.Context) error {
 	}
 	defer tx.Rollback()
 
+	rows := make([]*IsuCondition, 0, 100)
 	for _, cond := range req {
 		timestamp := time.Unix(cond.Timestamp, 0)
 
 		if !isValidConditionFormat(cond.Condition) {
 			return c.String(http.StatusBadRequest, "bad request body")
 		}
+
+		rows = append(rows, &IsuCondition{
+			JIAIsuUUID: jiaIsuUUID,
+			Timestamp:  timestamp,
+			IsSitting:  cond.IsSitting,
+			Condition:  cond.Condition,
+			Message:    cond.Message,
+		})
 
 		value, err := json.Marshal(LastIsuCondition{
 			IsuID:      isu.ID,
@@ -1324,17 +1300,13 @@ func postIsuCondition(c echo.Context) error {
 			return c.NoContent(http.StatusInternalServerError)
 		}
 		memcacheClient.Set(&memcache.Item{Key: strconv.Itoa(isu.ID), Value: value, Expiration: 60})
-
-		_, err = tx.Exec(
-			"INSERT INTO `isu_condition`"+
-				"	(`jia_isu_uuid`, `timestamp`, `is_sitting`, `condition`, `message`)"+
-				"	VALUES (?, ?, ?, ?, ?)",
-			jiaIsuUUID, timestamp, cond.IsSitting, cond.Condition, cond.Message)
-		if err != nil {
-			c.Logger().Errorf("db error: %v", err)
-			return c.NoContent(http.StatusInternalServerError)
-		}
-
+	}
+	_, err = tx.NamedExec("INSERT INTO `isu_condition`"+
+		"	(`jia_isu_uuid`, `timestamp`, `is_sitting`, `condition`, `message`)"+
+		"	VALUES (:jia_isu_uuid, :timestamp, :is_sitting, :condition, :message)", rows)
+	if err != nil {
+		c.Logger().Errorf("db error: %v", err)
+		return c.NoContent(http.StatusInternalServerError)
 	}
 
 	err = tx.Commit()
