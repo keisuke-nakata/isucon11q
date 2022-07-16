@@ -1160,6 +1160,7 @@ func getTrend(c echo.Context) error {
 		c.Logger().Errorf("db error: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	c.Logger().Errorf("len(isuIDs): %v", len(isuIDs))
 	cacheLastIsuConditions, err := memcacheClient.GetMulti(isuIDs)
 	if err != nil {
 		c.Logger().Errorf("memcached error: %v", err)
@@ -1172,15 +1173,18 @@ func getTrend(c echo.Context) error {
 		if !ok { // cache miss
 			// c.Logger().Errorf("cache error (%v): %v", isuID, err)
 			// return c.NoContent(http.StatusInternalServerError)
+			c.Logger().Errorf("cache miss: %v", isuID)
 		} else { // cache hit
+			c.Logger().Errorf("cache hit: %v", isuID)
 			err = json.Unmarshal(cacheLastIsuCondition.Value, &lastIsuCondition)
 			if err != nil {
 				c.Logger().Errorf("Unmarshal error: %v", err)
 				return c.NoContent(http.StatusInternalServerError)
 			}
+			lastIsuConditions = append(lastIsuConditions, lastIsuCondition)
 		}
-		lastIsuConditions = append(lastIsuConditions, lastIsuCondition)
 	}
+	c.Logger().Errorf("len(lastIsuConditions): %v", len(lastIsuConditions))
 
 	trendResponseMap := make(map[string]TrendResponse)
 
@@ -1190,6 +1194,7 @@ func getTrend(c echo.Context) error {
 	// var characterCriticalIsuConditions []*TrendCondition
 	for _, lastIsuCondition := range lastIsuConditions {
 		character := lastIsuCondition.Character
+		c.Logger().Errorf("loop: %v, %v", lastIsuCondition.IsuID, character)
 		trendResponse, ok := trendResponseMap[character]
 		if !ok {
 			trendResponse = TrendResponse{
@@ -1234,6 +1239,7 @@ func getTrend(c echo.Context) error {
 			trendResponse.Critical = append(trendResponse.Critical, &trendCondition)
 		}
 	}
+	c.Logger().Errorf("trendResponseMap: %v", trendResponseMap)
 	// res = append(res,
 	// 	TrendResponse{
 	// 		Character: character,
@@ -1243,17 +1249,24 @@ func getTrend(c echo.Context) error {
 	// 	})
 	res := []TrendResponse{}
 	for _, trendResponse := range trendResponseMap {
+		c.Logger().Errorf("before sort info: %v", trendResponse.Info)
 		sort.Slice(trendResponse.Info, func(i, j int) bool {
 			return trendResponse.Info[i].Timestamp > trendResponse.Info[j].Timestamp
 		})
+		c.Logger().Errorf("after sort info: %v", trendResponse.Info)
+		c.Logger().Errorf("before sort warn: %v", trendResponse.Warning)
 		sort.Slice(trendResponse.Warning, func(i, j int) bool {
 			return trendResponse.Warning[i].Timestamp > trendResponse.Warning[j].Timestamp
 		})
+		c.Logger().Errorf("after sort warn: %v", trendResponse.Warning)
+		c.Logger().Errorf("before sort critical: %v", trendResponse.Critical)
 		sort.Slice(trendResponse.Critical, func(i, j int) bool {
 			return trendResponse.Critical[i].Timestamp > trendResponse.Critical[j].Timestamp
 		})
+		c.Logger().Errorf("after sort critical: %v", trendResponse.Critical)
 		res = append(res, trendResponse)
 	}
+	c.Logger().Errorf("res: %v", res)
 
 	return c.JSON(http.StatusOK, res)
 }
