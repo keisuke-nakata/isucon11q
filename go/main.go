@@ -237,7 +237,7 @@ func main() {
 	e.Use(middleware.Recover())
 
 	e.POST("/initialize", postInitialize)
-	e.POST("/warmup", getWarmup)
+	e.GET("/warmup", getWarmup)
 
 	e.POST("/api/auth", postAuthentication)
 	e.POST("/api/signout", postSignout)
