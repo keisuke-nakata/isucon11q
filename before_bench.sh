@@ -1,16 +1,16 @@
 readonly REPO_ROOT_DIR=/home/isucon/webapp
-# readonly NGINX_ACCESS_LOG=/var/log/nginx/access.log
-# readonly NGINX_ERROR_LOG=/var/log/nginx/error.log
+readonly NGINX_ACCESS_LOG=/var/log/nginx/access.log
+readonly NGINX_ERROR_LOG=/var/log/nginx/error.log
 # readonly MYSQL_SLOW_LOG=/var/log/mysql/mysql-slow.log
 readonly MYSQL_CONF_DIR=/etc/mysql/mariadb.conf.d
-# readonly NGINX_CONF_DIR=/etc/nginx
+readonly NGINX_CONF_DIR=/etc/nginx
 
 ###
 # refresh logs
 ###
 
-# # refresh nginx access & error log
-# sudo truncate --size 0 $NGINX_ACCESS_LOG $NGINX_ERROR_LOG
+# refresh nginx access & error log
+sudo truncate --size 0 $NGINX_ACCESS_LOG $NGINX_ERROR_LOG
 
 # # refresh mysql slow query log
 # sudo truncate --size 0 $MYSQL_SLOW_LOG
@@ -32,10 +32,10 @@ sudo systemctl restart mysqld.service
 #   mysql --force isuconp < $file
 # done
 
-# # deploy nginx
-# sudo cp $REPO_ROOT_DIR/conf/nginx/nginx.conf $NGINX_CONF_DIR/
-# sudo cp $REPO_ROOT_DIR/conf/nginx/isucon.conf $NGINX_CONF_DIR/sites-enabled/
-# sudo systemctl reload nginx
+# deploy nginx
+sudo cp $REPO_ROOT_DIR/conf/nginx/nginx.conf $NGINX_CONF_DIR/
+sudo cp $REPO_ROOT_DIR/conf/nginx/isucondition.conf $NGINX_CONF_DIR/sites-enabled/
+sudo systemctl reload nginx
 
 # deploy go
 (

@@ -1,11 +1,11 @@
 readonly REPO_ROOT_DIR=/home/isucon/webapp
-# readonly NGINX_ACCESS_LOG=/var/log/nginx/access.log
-# readonly NGINX_ERROR_LOG=/var/log/nginx/error.log
+readonly NGINX_ACCESS_LOG=/var/log/nginx/access.log
+readonly NGINX_ERROR_LOG=/var/log/nginx/error.log
 # readonly MYSQL_SLOW_LOG=/var/log/mysql/mysql-slow.log
 readonly RESULT_BASE_DIR=$REPO_ROOT_DIR/result
 # readonly MYSQL_DEPLOY_DIR=$REPO_ROOT_DIR/sql
 # readonly MYSQL_CONF_DIR=/etc/mysql/mysql.conf.d
-# readonly NGINX_CONF_DIR=/etc/nginx
+readonly NGINX_CONF_DIR=/etc/nginx
 
 node_result_dir=$NODE_RESULT_DIR
 
@@ -26,16 +26,11 @@ echo "this is $node_result_dir" > $node_result_dir/hoge.log
 # kill -SIGINT $collectl_job_id
 # colplot -dir $collectl_result_dir -plots cpu,disk,mem -filetype png -filedir $collectl_result_dir -height 0.5 -lastmins 3
 
-# # alp
-# readonly alp_result_dir=$result_dir/alp
-# mkdir -p $alp_result_dir
+# alp
+readonly alp_result_dir=$result_dir/alp
+mkdir -p $alp_result_dir
 # sudo alp json --file $NGINX_ACCESS_LOG --sort=sum -r -m "/posts/[0-9]+,/@\w+,/image/\d+" > $alp_result_dir/alp.log
-
-# # copy nginx access & error log
-# readonly nginx_result_dir=$result_dir/nginx
-# mkdir -p $nginx_result_dir
-# sudo gzip --best -c $NGINX_ACCESS_LOG > $nginx_result_dir/access.log.gz
-# sudo gzip --best -c $NGINX_ERROR_LOG > $nginx_result_dir/error.log.gz
+sudo alp json --file $NGINX_ACCESS_LOG --sort=sum -r > $alp_result_dir/alp.log
 
 # # analyze mysql slow query log
 # readonly mysql_result_dir=$result_dir/mysql
