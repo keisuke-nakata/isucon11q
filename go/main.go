@@ -1166,6 +1166,7 @@ func getTrend(c echo.Context) error {
 		c.Logger().Errorf("memcached error: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	c.Logger().Errorf("cacheLastIsuConditions: %v", cacheLastIsuConditions)
 	lastIsuConditions := make([]LastIsuCondition, 0, 100)
 	for _, isuID := range isuIDs {
 		var lastIsuCondition LastIsuCondition
