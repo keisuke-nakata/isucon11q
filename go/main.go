@@ -1103,7 +1103,7 @@ func getTrend(c echo.Context) error {
 		"  timestamp, " +
 		"  condition, " +
 		"  id, " +
-		"  character " +
+		"  `character` " +
 		" FROM r WHERE rn = 1 ORDER BY `character`, rev_timestamp;"
 	err := db.Select(&tmpTrendRecordList, query)
 	if err != nil {
@@ -1119,22 +1119,22 @@ func getTrend(c echo.Context) error {
 	// }
 
 	res := []TrendResponse{}
-	charactor := "dummy"
+	character := "dummy"
 	var characterInfoIsuConditions []*TrendCondition
 	var characterWarningIsuConditions []*TrendCondition
 	var characterCriticalIsuConditions []*TrendCondition
 	for _, record := range tmpTrendRecordList {
-		if record.Character != charactor {
-			if charactor != "dummy" {
+		if record.Character != character {
+			if character != "dummy" {
 				res = append(res,
 					TrendResponse{
-						Character: charactor,
+						Character: character,
 						Info:      characterInfoIsuConditions,
 						Warning:   characterWarningIsuConditions,
 						Critical:  characterCriticalIsuConditions,
 					})
 			}
-			charactor = record.Character
+			character = record.Character
 			characterInfoIsuConditions = []*TrendCondition{}
 			characterWarningIsuConditions = []*TrendCondition{}
 			characterCriticalIsuConditions = []*TrendCondition{}
@@ -1159,7 +1159,7 @@ func getTrend(c echo.Context) error {
 	}
 	res = append(res,
 		TrendResponse{
-			Character: charactor,
+			Character: character,
 			Info:      characterInfoIsuConditions,
 			Warning:   characterWarningIsuConditions,
 			Critical:  characterCriticalIsuConditions,
