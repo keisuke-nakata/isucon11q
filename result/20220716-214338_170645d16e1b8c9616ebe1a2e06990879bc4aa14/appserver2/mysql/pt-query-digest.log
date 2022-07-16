@@ -1,0 +1,284 @@
+
+# 55.6s user time, 110ms system time, 34.84M rss, 42.11M vsz
+# Current date: Sat Jul 16 21:46:29 2022
+# Hostname: ip-192-168-0-12
+# Files: /var/log/mysql/mysql-slow.log
+# Overall: 781.54k total, 97 unique, 7.44k QPS, 1.40x concurrency ________
+# Time range: 2022-07-16 21:43:46 to 21:45:31
+# Attribute          total     min     max     avg     95%  stddev  median
+# ============     ======= ======= ======= ======= ======= ======= =======
+# Exec time           147s       0   125ms   188us   194us     1ms    25us
+# Lock time             3s       0    13ms     3us    14us    50us       0
+# Rows sent          6.81M       0   1.80k    9.14    0.99   88.82       0
+# Rows examine      14.39M       0   3.59k   19.31    0.99  182.22       0
+# Rows affecte      75.98k       0     618    0.10    0.99    0.99       0
+# Bytes sent         2.73G       0 278.71k   3.66k  13.78k  20.13k   69.19
+# Query size        52.31M       6 790.36k   70.19  246.02  982.79   31.70
+# Boolean:
+# QC hit        15% yes,  84% no
+
+# Profile
+# Rank Query ID                     Response time Calls  R/Call V/M   Item
+# ==== ============================ ============= ====== ====== ===== ====
+#    1 0x9C6C682008AE0D08F3E2A00... 46.3664 31.5%   6036 0.0077  0.01 SELECT isu_condition
+#    2 0xFFFCA4D67EA0A788813031B... 26.9603 18.3%  16117 0.0017  0.00 COMMIT
+#    3 0x5F580A12ADA1633C9634298... 26.9547 18.3%   3887 0.0069  0.01 SELECT isu_condition
+#    4 0xDA556F9115773A1A99AA016... 15.8007 10.7% 240408 0.0001  0.00 ADMIN PREPARE
+#    5 0xB8B32624C3268C0925657C3... 11.3004  7.7%  76400 0.0001  0.00 INSERT isu_condition
+#    6 0x77E4D4DC56A1CA542A7DAAF...  6.2459  4.2%  30096 0.0002  0.00 SELECT isu_condition
+#    7 0x677D4DCDF729CC334DE038E...  6.2323  4.2%   1455 0.0043  0.01 SELECT isu_condition
+#    8 0xADCA4F127A769A45A2D1B74...  1.4617  1.0%  57953 0.0000  0.00 SELECT user
+# MISC 0xMISC                        5.9413  4.0% 349187 0.0000   0.0 <89 ITEMS>
+
+# Query 1: 98.95 QPS, 0.76x concurrency, ID 0x9C6C682008AE0D08F3E2A0049B030C70 at byte 262444049
+# Scores: V/M = 0.01
+# Time range: 2022-07-16 21:44:15 to 21:45:16
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          0    6036
+# Exec time     31     46s    91us    60ms     8ms    24ms     8ms     5ms
+# Lock time      5   141ms     6us    11ms    23us    30us   181us    11us
+# Rows sent     58   4.00M       0   1.79k  694.56   1.33k  423.15  652.75
+# Rows examine  56   8.12M       0   3.57k   1.38k   2.76k  851.63   1.26k
+# Rows affecte   0       0       0       0       0       0       0       0
+# Bytes sent    21 607.97M     679 268.49k 103.14k 201.74k  62.75k  97.04k
+# Query size     1 925.44k     157     157     157     157       0     157
+# String:
+# Databases    isucondition
+# Hosts        ip-192-168... (3038/50%)... 1 more
+# Users        isucon
+# Query_time distribution
+#   1us
+#  10us  #
+# 100us  ############
+#   1ms  ################################################################
+#  10ms  ##############################
+# 100ms
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS FROM `isucondition` LIKE 'isu_condition'\G
+#    SHOW CREATE TABLE `isucondition`.`isu_condition`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = '7eeb5a2d-de92-47d8-aa4a-c4b510ec6968'	AND `timestamp` < '2021-08-28 09:21:41'	ORDER BY `timestamp` DESC\G
+
+# Query 2: 264.21 QPS, 0.44x concurrency, ID 0xFFFCA4D67EA0A788813031B8BBC3B329 at byte 179440260
+# Scores: V/M = 0.00
+# Time range: 2022-07-16 21:44:15 to 21:45:16
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          2   16117
+# Exec time     18     27s     3us    35ms     2ms     5ms     2ms   515us
+# Lock time      0       0       0       0       0       0       0       0
+# Rows sent      0       0       0       0       0       0       0       0
+# Rows examine   0       0       0       0       0       0       0       0
+# Rows affecte   0       0       0       0       0       0       0       0
+# Bytes sent     0 173.13k      11      11      11      11       0      11
+# Query size     0  94.44k       6       6       6       6       0       6
+# String:
+# Databases    isucondition
+# Hosts        ip-192-168... (8101/50%)... 1 more
+# Users        isucon
+# Query_time distribution
+#   1us  ###
+#  10us  ###############################################
+# 100us  ###################
+#   1ms  ################################################################
+#  10ms  #
+# 100ms
+#    1s
+#  10s+
+COMMIT\G
+
+# Query 3: 63.72 QPS, 0.44x concurrency, ID 0x5F580A12ADA1633C9634298BE5BD9422 at byte 263196156
+# Scores: V/M = 0.01
+# Time range: 2022-07-16 21:44:15 to 21:45:16
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          0    3887
+# Exec time     18     27s     9us    56ms     7ms    21ms     7ms     4ms
+# Lock time      3    88ms       0     5ms    22us    31us   130us    11us
+# Rows sent     37   2.57M       6   1.80k  692.97   1.33k  392.56  652.75
+# Rows examine  35   5.11M       0   3.59k   1.35k   2.62k  791.90   1.26k
+# Rows affecte   0       0       0       0       0       0       0       0
+# Bytes sent    13 388.62M   1.56k 270.15k 102.38k 201.74k  58.02k  92.42k
+# Query size     0 440.32k     116     116     116     116       0     116
+# Boolean:
+# QC hit         1% yes,  98% no
+# String:
+# Databases    isucondition
+# Hosts        ip-192-168... (1945/50%)... 1 more
+# Users        isucon
+# Query_time distribution
+#   1us  #
+#  10us  #
+# 100us  ##########
+#   1ms  ################################################################
+#  10ms  #######################
+# 100ms
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS FROM `isucondition` LIKE 'isu_condition'\G
+#    SHOW CREATE TABLE `isucondition`.`isu_condition`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = '9fbd864c-d8e2-4543-a042-e4b39a133f9f' ORDER BY `timestamp` ASC\G
+
+# Query 4: 3.70k QPS, 0.24x concurrency, ID 0xDA556F9115773A1A99AA0165670CE848 at byte 168280077
+# Scores: V/M = 0.00
+# Time range: 2022-07-16 21:44:11 to 21:45:16
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count         30  240408
+# Exec time     10     16s    16us    33ms    65us    98us   346us    40us
+# Lock time      0       0       0       0       0       0       0       0
+# Rows sent      0       0       0       0       0       0       0       0
+# Rows examine   0       0       0       0       0       0       0       0
+# Rows affecte   0       0       0       0       0       0       0       0
+# Bytes sent     2  57.86M      52     771  252.34  685.39  221.13  158.58
+# Query size    13   6.88M      30      30      30      30       0      30
+# String:
+# Databases    isucondition
+# Hosts        ip-192-168... (120420/50%)... 1 more
+# Users        isucon
+# Query_time distribution
+#   1us
+#  10us  ################################################################
+# 100us  ###
+#   1ms  #
+#  10ms  #
+# 100ms
+#    1s
+#  10s+
+administrator command: Prepare\G
+
+# Query 5: 1.27k QPS, 0.19x concurrency, ID 0xB8B32624C3268C0925657C305C0ED778 at byte 30309625
+# Scores: V/M = 0.00
+# Time range: 2022-07-16 21:44:16 to 21:45:16
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          9   76400
+# Exec time      7     11s    24us    32ms   147us   273us   649us    57us
+# Lock time     61      2s     6us     9ms    21us    28us   110us    12us
+# Rows sent      0       0       0       0       0       0       0       0
+# Rows examine   0       0       0       0       0       0       0       0
+# Rows affecte  98  74.61k       1       1       1       1       0       1
+# Bytes sent     0 981.14k      13      14   13.15   13.83    0.46   12.54
+# Query size    34  18.24M     230     302  250.36  258.32   10.37  246.02
+# String:
+# Databases    isucondition
+# Hosts        ip-192-168... (38253/50%)... 1 more
+# Users        isucon
+# Query_time distribution
+#   1us
+#  10us  ################################################################
+# 100us  #########
+#   1ms  #
+#  10ms  #
+# 100ms
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS FROM `isucondition` LIKE 'isu_condition'\G
+#    SHOW CREATE TABLE `isucondition`.`isu_condition`\G
+INSERT INTO `isu_condition`	(`jia_isu_uuid`, `timestamp`, `is_sitting`, `condition`, `message`)	VALUES ('d12ee093-43bb-4476-b7f7-10b7eae4dd09', '2021-08-11 15:02:36', 0, 'is_dirty=false,is_overweight=false,is_broken=false', 'ま、いいんじゃない？')\G
+
+# Query 6: 493.38 QPS, 0.10x concurrency, ID 0x77E4D4DC56A1CA542A7DAAF9295E9C76 at byte 30240031
+# Scores: V/M = 0.00
+# Time range: 2022-07-16 21:44:15 to 21:45:16
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          3   30096
+# Exec time      4      6s    13us    17ms   207us   424us   510us   119us
+# Lock time     22   595ms       0     6ms    19us    27us   113us    10us
+# Rows sent      0  29.19k       0       1    0.99    0.99    0.08    0.99
+# Rows examine   0  29.18k       0       1    0.99    0.99    0.08    0.99
+# Rows affecte   0       0       0       0       0       0       0       0
+# Bytes sent     0  23.81M     679     883  829.53  833.10   22.69  793.42
+# Query size     6   3.56M     124     124     124     124       0     124
+# Boolean:
+# QC hit         0% yes,  99% no
+# String:
+# Databases    isucondition
+# Hosts        ip-192-168... (15393/51%)... 1 more
+# Users        isucon
+# Query_time distribution
+#   1us
+#  10us  ############
+# 100us  ################################################################
+#   1ms  #
+#  10ms  #
+# 100ms
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS FROM `isucondition` LIKE 'isu_condition'\G
+#    SHOW CREATE TABLE `isucondition`.`isu_condition`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = 'acf50e06-e2c2-4f85-b611-64bf9ed2a462' ORDER BY `rev_timestamp` LIMIT 1\G
+
+# Query 7: 23.85 QPS, 0.10x concurrency, ID 0x677D4DCDF729CC334DE038E9477B32B3 at byte 267207096
+# Scores: V/M = 0.01
+# Time range: 2022-07-16 21:44:15 to 21:45:16
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          0    1455
+# Exec time      4      6s   128us    49ms     4ms    15ms     5ms     2ms
+# Lock time      1    45ms     9us    13ms    30us    33us   329us    13us
+# Rows sent      0   3.78k       0      30    2.66    9.83    4.74       0
+# Rows examine   6 922.18k      10   1.80k  649.01   1.33k  420.12  563.87
+# Rows affecte   0       0       0       0       0       0       0       0
+# Bytes sent     0   1.50M     679   5.20k   1.06k   2.16k  724.16  652.75
+# Query size     0 277.37k     189     198  195.20  192.76    4.25  192.76
+# String:
+# Databases    isucondition
+# Hosts        ip-192-168... (730/50%)... 1 more
+# Users        isucon
+# Query_time distribution
+#   1us
+#  10us
+# 100us  #####################
+#   1ms  ################################################################
+#  10ms  ###########
+# 100ms
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS FROM `isucondition` LIKE 'isu_condition'\G
+#    SHOW CREATE TABLE `isucondition`.`isu_condition`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = '498dbf6d-5965-4e67-a6f3-36f12aa26ded'	AND `timestamp` < '2021-08-28 05:00:00'	AND '2021-08-28 04:00:00' <= `timestamp`	ORDER BY `timestamp` DESC\G
+
+# Query 8: 950.05 QPS, 0.02x concurrency, ID 0xADCA4F127A769A45A2D1B74705103105 at byte 228173822
+# Scores: V/M = 0.00
+# Time range: 2022-07-16 21:44:15 to 21:45:16
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          7   57953
+# Exec time      0      1s     5us     9ms    25us    33us   140us    12us
+# Lock time      0   225us       0    24us       0       0       0       0
+# Rows sent      0  56.59k       1       1       1       1       0       1
+# Rows examine   0      18       0       1    0.00       0    0.02       0
+# Rows affecte   0       0       0       0       0       0       0       0
+# Bytes sent     0   3.92M      71      71      71      71       0      71
+# Query size     6   3.59M      58      72   64.94   69.19    3.95   62.76
+# Boolean:
+# QC hit        99% yes,   0% no
+# String:
+# Databases    isucondition
+# Hosts        ip-192-168... (29018/50%)... 1 more
+# Users        isucon
+# Query_time distribution
+#   1us  #####
+#  10us  ################################################################
+# 100us  #
+#   1ms  #
+#  10ms
+# 100ms
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS FROM `isucondition` LIKE 'user'\G
+#    SHOW CREATE TABLE `isucondition`.`user`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT COUNT(*) FROM `user` WHERE `jia_user_id` = 'sad_benz'\G
