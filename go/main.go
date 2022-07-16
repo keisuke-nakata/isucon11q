@@ -1134,7 +1134,7 @@ func calculateConditionLevel(condition string) (string, error) {
 // ISUの性格毎の最新のコンディション情報
 func getTrend(c echo.Context) error {
 	isuIDs := make([]string, 0, 100)
-	err := db.Select(&isuIDs, "SELECT isu.id FROM isucondition JOIN isu ON isucondition.jia_isu_uuid = isu.jia_isu_uuid;")
+	err := db.Select(&isuIDs, "SELECT isu.id FROM isu_condition JOIN isu ON isu_condition.jia_isu_uuid = isu.jia_isu_uuid;")
 	if err != nil {
 		c.Logger().Errorf("db error: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
