@@ -1195,7 +1195,6 @@ func getTrend(c echo.Context) error {
 	// var characterCriticalIsuConditions []*TrendCondition
 	for _, lastIsuCondition := range lastIsuConditions {
 		character := lastIsuCondition.Character
-		c.Logger().Errorf("loop: %v, %v", lastIsuCondition.IsuID, character)
 		trendResponse, ok := trendResponseMap[character]
 		if !ok {
 			trendResponse = &TrendResponse{
@@ -1250,21 +1249,15 @@ func getTrend(c echo.Context) error {
 	// 	})
 	res := []TrendResponse{}
 	for _, trendResponse := range trendResponseMap {
-		c.Logger().Errorf("before sort info: %v", trendResponse.Info)
 		sort.Slice(trendResponse.Info, func(i, j int) bool {
 			return trendResponse.Info[i].Timestamp > trendResponse.Info[j].Timestamp
 		})
-		c.Logger().Errorf("after sort info: %v", trendResponse.Info)
-		c.Logger().Errorf("before sort warn: %v", trendResponse.Warning)
 		sort.Slice(trendResponse.Warning, func(i, j int) bool {
 			return trendResponse.Warning[i].Timestamp > trendResponse.Warning[j].Timestamp
 		})
-		c.Logger().Errorf("after sort warn: %v", trendResponse.Warning)
-		c.Logger().Errorf("before sort critical: %v", trendResponse.Critical)
 		sort.Slice(trendResponse.Critical, func(i, j int) bool {
 			return trendResponse.Critical[i].Timestamp > trendResponse.Critical[j].Timestamp
 		})
-		c.Logger().Errorf("after sort critical: %v", trendResponse.Critical)
 		res = append(res, *trendResponse)
 	}
 	c.Logger().Errorf("res: %v", res)
