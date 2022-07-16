@@ -237,6 +237,7 @@ func main() {
 	e.Use(middleware.Recover())
 
 	e.POST("/initialize", postInitialize)
+	e.POST("/warmup", getWarmup)
 
 	e.POST("/api/auth", postAuthentication)
 	e.POST("/api/signout", postSignout)
@@ -325,6 +326,41 @@ func getJIAServiceURL(tx *sqlx.Tx) string {
 	return config.URL
 }
 
+func warmup() error {
+	lastIsuConditions := make([]LastIsuCondition, 0, 100)
+	query := "" +
+		"WITH r AS (" +
+		"  SELECT " +
+		"  isu_condition.jia_isu_uuid, " +
+		"  isu_condition.timestamp, " +
+		"  isu_condition.rev_timestamp, " +
+		"  isu_condition.condition, " +
+		"  isu.`id`, " +
+		"  isu.`character`, " +
+		"  ROW_NUMBER() OVER (PARTITION BY jia_isu_uuid ORDER BY rev_timestamp) AS rn " +
+		"  FROM isu_condition JOIN isu ON isu_condition.jia_isu_uuid = isu.jia_isu_uuid" +
+		") " +
+		"SELECT " +
+		"  `id`, " +
+		"  jia_isu_uuid, " +
+		"  `timestamp`, " +
+		"  `condition`, " +
+		"  `character` " +
+		" FROM r WHERE rn = 1 ORDER BY `character`, rev_timestamp;"
+	err := db.Select(&lastIsuConditions, query)
+	if err != nil {
+		return err
+	}
+	for _, lastIsuCondition := range lastIsuConditions {
+		value, err := json.Marshal(lastIsuCondition)
+		if err != nil {
+			return err
+		}
+		memcacheClient.Set(&memcache.Item{Key: strconv.Itoa(lastIsuCondition.IsuID), Value: value, Expiration: 60})
+	}
+	return nil
+}
+
 // POST /initialize
 // サービスを初期化
 func postInitialize(c echo.Context) error {
@@ -353,39 +389,23 @@ func postInitialize(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	// warmup memcached
-	lastIsuConditions := make([]LastIsuCondition, 0, 100)
-	query := "" +
-		"WITH r AS (" +
-		"  SELECT " +
-		"  isu_condition.jia_isu_uuid, " +
-		"  isu_condition.timestamp, " +
-		"  isu_condition.rev_timestamp, " +
-		"  isu_condition.condition, " +
-		"  isu.`id`, " +
-		"  isu.`character`, " +
-		"  ROW_NUMBER() OVER (PARTITION BY jia_isu_uuid ORDER BY rev_timestamp) AS rn " +
-		"  FROM isu_condition JOIN isu ON isu_condition.jia_isu_uuid = isu.jia_isu_uuid" +
-		") " +
-		"SELECT " +
-		"  `id`, " +
-		"  jia_isu_uuid, " +
-		"  `timestamp`, " +
-		"  `condition`, " +
-		"  `character` " +
-		" FROM r WHERE rn = 1 ORDER BY `character`, rev_timestamp;"
-	err = db.Select(&lastIsuConditions, query)
+	err = warmup()
 	if err != nil {
-		c.Logger().Errorf("db error: %v", err)
+		c.Logger().Errorf("warmup error: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	for _, lastIsuCondition := range lastIsuConditions {
-		value, err := json.Marshal(lastIsuCondition)
-		if err != nil {
-			c.Logger().Errorf("json error: %v", err)
-			return c.NoContent(http.StatusInternalServerError)
-		}
-		memcacheClient.Set(&memcache.Item{Key: strconv.Itoa(lastIsuCondition.IsuID), Value: value, Expiration: 60})
+
+	return c.JSON(http.StatusOK, InitializeResponse{
+		Language: "go",
+	})
+}
+
+// GET /warmup
+func getWarmup(c echo.Context) error {
+	err := warmup()
+	if err != nil {
+		c.Logger().Errorf("warmup error: %v", err)
+		return c.NoContent(http.StatusInternalServerError)
 	}
 
 	return c.JSON(http.StatusOK, InitializeResponse{
