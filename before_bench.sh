@@ -1,7 +1,7 @@
 readonly REPO_ROOT_DIR=/home/isucon/webapp
 readonly NGINX_ACCESS_LOG=/var/log/nginx/access.log
 readonly NGINX_ERROR_LOG=/var/log/nginx/error.log
-# readonly MYSQL_SLOW_LOG=/var/log/mysql/mysql-slow.log
+readonly MYSQL_SLOW_LOG=/var/log/mysql/mysql-slow.log
 readonly MYSQL_CONF_DIR=/etc/mysql/mariadb.conf.d
 readonly NGINX_CONF_DIR=/etc/nginx
 
@@ -12,9 +12,9 @@ readonly NGINX_CONF_DIR=/etc/nginx
 # refresh nginx access & error log
 sudo truncate --size 0 $NGINX_ACCESS_LOG $NGINX_ERROR_LOG
 
-# # refresh mysql slow query log
-# sudo truncate --size 0 $MYSQL_SLOW_LOG
-# sudo mysqladmin flush-logs
+# refresh mysql slow query log
+sudo truncate --size 0 $MYSQL_SLOW_LOG
+sudo mysqladmin flush-logs
 
 ###
 # deploy

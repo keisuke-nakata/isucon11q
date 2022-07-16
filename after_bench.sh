@@ -1,11 +1,8 @@
 readonly REPO_ROOT_DIR=/home/isucon/webapp
 readonly NGINX_ACCESS_LOG=/var/log/nginx/access.log
 readonly NGINX_ERROR_LOG=/var/log/nginx/error.log
-# readonly MYSQL_SLOW_LOG=/var/log/mysql/mysql-slow.log
+readonly MYSQL_SLOW_LOG=/var/log/mysql/mysql-slow.log
 readonly RESULT_BASE_DIR=$REPO_ROOT_DIR/result
-# readonly MYSQL_DEPLOY_DIR=$REPO_ROOT_DIR/sql
-# readonly MYSQL_CONF_DIR=/etc/mysql/mysql.conf.d
-readonly NGINX_CONF_DIR=/etc/nginx
 
 node_result_dir=$NODE_RESULT_DIR
 
@@ -29,11 +26,11 @@ readonly alp_result_dir=$node_result_dir/alp
 mkdir -p $alp_result_dir
 sudo alp json --file $NGINX_ACCESS_LOG --sort=sum -r -m "/api/condition/\w+,/api/isu/\w+" > $alp_result_dir/alp.log
 
-# # analyze mysql slow query log
-# readonly mysql_result_dir=$result_dir/mysql
-# mkdir -p $mysql_result_dir
-# # sudo pt-query-digest $MYSQL_SLOW_LOG > $mysql_result_dir/pt-query-digest.log  # 遅いので後回し
-# # sudo gzip --best -c $MYSQL_SLOW_LOG > $mysql_result_dir/mysql-slow.log.gz  # 重すぎる
+# analyze mysql slow query log
+readonly mysql_result_dir=$node_result_dir/mysql
+mkdir -p $mysql_result_dir
+sudo pt-query-digest $MYSQL_SLOW_LOG > $mysql_result_dir/pt-query-digest.log
+# sudo gzip --best -c $MYSQL_SLOW_LOG > $mysql_result_dir/mysql-slow.log.gz  # 重すぎる
 
 # git push
 sudo chown -R isucon $node_result_dir
