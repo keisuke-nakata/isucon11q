@@ -14,8 +14,6 @@ node_result_dir=$NODE_RESULT_DIR
 ###
 mkdir -p $node_result_dir
 
-echo "this is $node_result_dir" > $node_result_dir/hoge.log
-
 # # stop profile & analyze
 # curl "http://localhost:80/pprof/stop"
 # readonly profile_result_dir=$result_dir/profile
@@ -29,8 +27,7 @@ echo "this is $node_result_dir" > $node_result_dir/hoge.log
 # alp
 readonly alp_result_dir=$node_result_dir/alp
 mkdir -p $alp_result_dir
-# sudo alp json --file $NGINX_ACCESS_LOG --sort=sum -r -m "/posts/[0-9]+,/@\w+,/image/\d+" > $alp_result_dir/alp.log
-sudo alp json --file $NGINX_ACCESS_LOG --sort=sum -r > $alp_result_dir/alp.log
+sudo alp json --file $NGINX_ACCESS_LOG --sort=sum -r -m "/api/condition/\w+,/api/isu/\w+" > $alp_result_dir/alp.log
 
 # # analyze mysql slow query log
 # readonly mysql_result_dir=$result_dir/mysql
