@@ -27,7 +27,7 @@ echo "this is $node_result_dir" > $node_result_dir/hoge.log
 # colplot -dir $collectl_result_dir -plots cpu,disk,mem -filetype png -filedir $collectl_result_dir -height 0.5 -lastmins 3
 
 # alp
-readonly alp_result_dir=$result_dir/alp
+readonly alp_result_dir=$node_result_dir/alp
 mkdir -p $alp_result_dir
 # sudo alp json --file $NGINX_ACCESS_LOG --sort=sum -r -m "/posts/[0-9]+,/@\w+,/image/\d+" > $alp_result_dir/alp.log
 sudo alp json --file $NGINX_ACCESS_LOG --sort=sum -r > $alp_result_dir/alp.log
