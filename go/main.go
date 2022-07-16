@@ -93,11 +93,11 @@ type IsuCondition struct {
 }
 
 type LastIsuCondition struct {
-	IsuID      int       `json:"id"`
-	JIAIsuUUID string    `json:"jia_isu_uuid"`
-	Timestamp  time.Time `json:"timestamp"`
-	Condition  string    `json:"condition"`
-	Character  string    `json:"character"`
+	IsuID      int       `db:"id" json:"id"`
+	JIAIsuUUID string    `db:"jia_isu_uuid" json:"jia_isu_uuid"`
+	Timestamp  time.Time `db:"timestamp" json:"timestamp"`
+	Condition  string    `db:"condition" json:"condition"`
+	Character  string    `db:"character" json:"character"`
 }
 
 type MySQLConnectionEnv struct {
@@ -350,6 +350,41 @@ func postInitialize(c echo.Context) error {
 	if err != nil {
 		c.Logger().Errorf("db error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	// warmup memcached
+	lastIsuConditions := make([]LastIsuCondition, 0, 100)
+	query := "" +
+		"WITH r AS (" +
+		"  SELECT " +
+		"  isu_condition.jia_isu_uuid, " +
+		"  isu_condition.timestamp, " +
+		"  isu_condition.rev_timestamp, " +
+		"  isu_condition.condition, " +
+		"  isu.`id`, " +
+		"  isu.`character`, " +
+		"  ROW_NUMBER() OVER (PARTITION BY jia_isu_uuid ORDER BY rev_timestamp) AS rn " +
+		"  FROM isu_condition JOIN isu ON isu_condition.jia_isu_uuid = isu.jia_isu_uuid" +
+		") " +
+		"SELECT " +
+		"  `id`, " +
+		"  jia_isu_uuid, " +
+		"  `timestamp`, " +
+		"  `condition`, " +
+		"  `character` " +
+		" FROM r WHERE rn = 1 ORDER BY `character`, rev_timestamp;"
+	err = db.Select(&lastIsuConditions, query)
+	if err != nil {
+		c.Logger().Errorf("db error: %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	for _, lastIsuCondition := range lastIsuConditions {
+		value, err := json.Marshal(lastIsuCondition)
+		if err != nil {
+			c.Logger().Errorf("json error: %v", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		memcacheClient.Set(&memcache.Item{Key: strconv.Itoa(lastIsuCondition.IsuID), Value: value, Expiration: 60})
 	}
 
 	return c.JSON(http.StatusOK, InitializeResponse{
@@ -1098,38 +1133,67 @@ func calculateConditionLevel(condition string) (string, error) {
 // GET /api/trend
 // ISUの性格毎の最新のコンディション情報
 func getTrend(c echo.Context) error {
-	tmpTrendRecordList := make([]TmpTrendRecord, 0, 100)
-	query := "" +
-		"WITH r AS (" +
-		"  SELECT " +
-		"  isu_condition.jia_isu_uuid, " +
-		"  isu_condition.timestamp, " +
-		"  isu_condition.rev_timestamp, " +
-		"  isu_condition.condition, " +
-		"  isu.`id`, " +
-		"  isu.`character`, " +
-		"  ROW_NUMBER() OVER (PARTITION BY jia_isu_uuid ORDER BY rev_timestamp) AS rn " +
-		"  FROM isu_condition JOIN isu ON isu_condition.jia_isu_uuid = isu.jia_isu_uuid" +
-		") " +
-		"SELECT " +
-		"  jia_isu_uuid, " +
-		"  `timestamp`, " +
-		"  `condition`, " +
-		"  `id`, " +
-		"  `character` " +
-		" FROM r WHERE rn = 1 ORDER BY `character`, rev_timestamp;"
-	err := db.Select(&tmpTrendRecordList, query)
+	isuIDs := make([]string, 0, 100)
+	err := db.Select(&isuIDs, "SELECT isu.id FROM isucondition JOIN isu ON isucondition.jia_isu_uuid = isu.jia_isu_uuid;")
 	if err != nil {
 		c.Logger().Errorf("db error: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	cacheLastIsuConditions, err := memcacheClient.GetMulti(isuIDs)
+	if err != nil {
+		c.Logger().Errorf("memcached error: %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	lastIsuConditions := make([]LastIsuCondition, 0, 100)
+	for _, isuID := range isuIDs {
+		var lastIsuCondition LastIsuCondition
+		cacheLastIsuCondition, ok := cacheLastIsuConditions[isuID]
+		if !ok { // cache miss
+			// c.Logger().Errorf("cache error (%v): %v", isuID, err)
+			// return c.NoContent(http.StatusInternalServerError)
+		} else { // cache hit
+			err = json.Unmarshal(cacheLastIsuCondition.Value, &lastIsuCondition)
+			if err != nil {
+				c.Logger().Errorf("Unmarshal error: %v", err)
+				return c.NoContent(http.StatusInternalServerError)
+			}
+		}
+		lastIsuConditions = append(lastIsuConditions, lastIsuCondition)
+	}
+
+	// tmpTrendRecordList := make([]TmpTrendRecord, 0, 100)
+	// query := "" +
+	// 	"WITH r AS (" +
+	// 	"  SELECT " +
+	// 	"  isu_condition.jia_isu_uuid, " +
+	// 	"  isu_condition.timestamp, " +
+	// 	"  isu_condition.rev_timestamp, " +
+	// 	"  isu_condition.condition, " +
+	// 	"  isu.`id`, " +
+	// 	"  isu.`character`, " +
+	// 	"  ROW_NUMBER() OVER (PARTITION BY jia_isu_uuid ORDER BY rev_timestamp) AS rn " +
+	// 	"  FROM isu_condition JOIN isu ON isu_condition.jia_isu_uuid = isu.jia_isu_uuid" +
+	// 	") " +
+	// 	"SELECT " +
+	// 	"  jia_isu_uuid, " +
+	// 	"  `timestamp`, " +
+	// 	"  `condition`, " +
+	// 	"  `id`, " +
+	// 	"  `character` " +
+	// 	" FROM r WHERE rn = 1 ORDER BY `character`, rev_timestamp;"
+	// err := db.Select(&tmpTrendRecordList, query)
+	// if err != nil {
+	// 	c.Logger().Errorf("db error: %v", err)
+	// 	return c.NoContent(http.StatusInternalServerError)
+	// }
 
 	res := []TrendResponse{}
 	character := "dummy"
 	var characterInfoIsuConditions []*TrendCondition
 	var characterWarningIsuConditions []*TrendCondition
 	var characterCriticalIsuConditions []*TrendCondition
-	for _, record := range tmpTrendRecordList {
+	// for _, record := range tmpTrendRecordList {
+	for _, record := range lastIsuConditions {
 		if record.Character != character {
 			if character != "dummy" {
 				res = append(res,
@@ -1151,7 +1215,8 @@ func getTrend(c echo.Context) error {
 			return c.NoContent(http.StatusInternalServerError)
 		}
 		trendCondition := TrendCondition{
-			ID:        record.ID,
+			// ID:        record.ID,
+			ID:        record.IsuID,
 			Timestamp: record.Timestamp.Unix(),
 		}
 		switch conditionLevel {
