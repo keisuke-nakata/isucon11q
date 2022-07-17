@@ -669,7 +669,7 @@ func postIsu(c echo.Context) error {
 
 	_, err = tx.Exec("INSERT INTO `isu`"+
 		"	(`jia_isu_uuid`, `name`, `image`, `jia_user_id`) VALUES (?, ?, ?, ?)",
-		jiaIsuUUID, isuName, "", jiaUserID)
+		jiaIsuUUID, isuName, image, jiaUserID)
 	if err != nil {
 		mysqlErr, ok := err.(*mysql.MySQLError)
 
