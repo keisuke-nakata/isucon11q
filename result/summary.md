@@ -20,3 +20,4 @@
 |20220716-225818|45761(45806 - 45)|b071813110ba736878194391075507cbf4a17b29|sort /api/trend|
 |20220716-231855|53655(53716 - 61)|13e79f37407860fb82d9fce8faf9b517dbbf2bf0|bulk insert POST /api/condition/:jia_isu_uuid|
 |20220717-174300|54529(54596 - 67)|5c3f1701c1df905883f18ec624c2d569b78db36f|POST /api/condition/:jia_isu_uuid memcache SET last condition only|
+|20220717-175032|59699(59768 - 69)|404fadb1cd9caa3b6fb3711bc92969987fd5ebef|nginx static assets|
