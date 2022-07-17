@@ -1293,19 +1293,6 @@ func postIsuCondition(c echo.Context) error {
 			Condition:  cond.Condition,
 			Message:    cond.Message,
 		})
-
-		// value, err := json.Marshal(LastIsuCondition{
-		// 	IsuID:      isu.ID,
-		// 	JIAIsuUUID: jiaIsuUUID,
-		// 	Timestamp:  timestamp,
-		// 	Condition:  cond.Condition,
-		// 	Character:  isu.Character,
-		// })
-		// if err != nil {
-		// 	c.Logger().Errorf("json error: %v", err)
-		// 	return c.NoContent(http.StatusInternalServerError)
-		// }
-		// memcacheClient.Set(&memcache.Item{Key: strconv.Itoa(isu.ID), Value: value, Expiration: 60})
 	}
 	value, err := json.Marshal(LastIsuCondition{
 		IsuID:      isu.ID,
