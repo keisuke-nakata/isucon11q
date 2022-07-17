@@ -1170,7 +1170,7 @@ func getTrend(c echo.Context) error {
 		var lastIsuCondition LastIsuCondition
 		cacheLastIsuCondition, ok := cacheLastIsuConditions[isuID]
 		if !ok { // cache miss
-			// c.Logger().Errorf("cache error (%v): %v", isuID, err)
+			c.Logger().Errorf("cache error (%v): %v", isuID, err)
 			// return c.NoContent(http.StatusInternalServerError)
 		} else { // cache hit
 			err = json.Unmarshal(cacheLastIsuCondition.Value, &lastIsuCondition)
@@ -1273,8 +1273,14 @@ func postIsuCondition(c echo.Context) error {
 	defer tx.Rollback()
 
 	rows := make([]*IsuCondition, 0, 100)
-	for _, cond := range req {
+	max := time.Time{}
+	var maxidx int
+	for i, cond := range req {
 		timestamp := time.Unix(cond.Timestamp, 0)
+		if timestamp.After(max) {
+			max = timestamp
+			maxidx = i
+		}
 
 		if !isValidConditionFormat(cond.Condition) {
 			return c.String(http.StatusBadRequest, "bad request body")
@@ -1288,19 +1294,32 @@ func postIsuCondition(c echo.Context) error {
 			Message:    cond.Message,
 		})
 
-		value, err := json.Marshal(LastIsuCondition{
-			IsuID:      isu.ID,
-			JIAIsuUUID: jiaIsuUUID,
-			Timestamp:  timestamp,
-			Condition:  cond.Condition,
-			Character:  isu.Character,
-		})
-		if err != nil {
-			c.Logger().Errorf("json error: %v", err)
-			return c.NoContent(http.StatusInternalServerError)
-		}
-		memcacheClient.Set(&memcache.Item{Key: strconv.Itoa(isu.ID), Value: value, Expiration: 60})
+		// value, err := json.Marshal(LastIsuCondition{
+		// 	IsuID:      isu.ID,
+		// 	JIAIsuUUID: jiaIsuUUID,
+		// 	Timestamp:  timestamp,
+		// 	Condition:  cond.Condition,
+		// 	Character:  isu.Character,
+		// })
+		// if err != nil {
+		// 	c.Logger().Errorf("json error: %v", err)
+		// 	return c.NoContent(http.StatusInternalServerError)
+		// }
+		// memcacheClient.Set(&memcache.Item{Key: strconv.Itoa(isu.ID), Value: value, Expiration: 60})
 	}
+	value, err := json.Marshal(LastIsuCondition{
+		IsuID:      isu.ID,
+		JIAIsuUUID: rows[maxidx].JIAIsuUUID,
+		Timestamp:  rows[maxidx].Timestamp,
+		Condition:  rows[maxidx].Condition,
+		Character:  isu.Character,
+	})
+	if err != nil {
+		c.Logger().Errorf("json error: %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	memcacheClient.Set(&memcache.Item{Key: strconv.Itoa(isu.ID), Value: value, Expiration: 60})
+
 	_, err = tx.NamedExec("INSERT INTO `isu_condition`"+
 		"	(`jia_isu_uuid`, `timestamp`, `is_sitting`, `condition`, `message`)"+
 		"	VALUES (:jia_isu_uuid, :timestamp, :is_sitting, :condition, :message)", rows)
