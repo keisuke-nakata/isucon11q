@@ -645,6 +645,7 @@ func postIsu(c echo.Context) error {
 			return c.NoContent(http.StatusInternalServerError)
 		}
 	}
+	// TODO: image を保存
 
 	tx, err := db.Beginx()
 	if err != nil {
@@ -788,6 +789,15 @@ func getIsuIcon(c echo.Context) error {
 		c.Logger().Errorf("db error: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+
+	c.Logger().Errorf("APP!: %v", err)
+
+	// // cache ISU image
+	// err = ioutil.WriteFile("../public/assets/image/"+jiaIsuUUID+".jpg", image, 0644)
+	// if err != nil {
+	// 	c.Logger().Errorf("image save error: %v", err)
+	// 	return c.NoContent(http.StatusInternalServerError)
+	// }
 
 	return c.Blob(http.StatusOK, "", image)
 }
