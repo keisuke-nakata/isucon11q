@@ -326,6 +326,11 @@ func getJIAServiceURL(tx *sqlx.Tx) string {
 	return config.URL
 }
 
+func wipeDir() {
+	os.RemoveAll("../public/assets/image/")
+	os.MkdirAll("../public/assets/image/", 0775)
+}
+
 func warmup() error {
 	lastIsuConditions := make([]LastIsuCondition, 0, 100)
 	query := "" +
@@ -388,6 +393,8 @@ func postInitialize(c echo.Context) error {
 		c.Logger().Errorf("db error : %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+
+	wipeDir()
 
 	err = warmup()
 	if err != nil {
@@ -645,7 +652,13 @@ func postIsu(c echo.Context) error {
 			return c.NoContent(http.StatusInternalServerError)
 		}
 	}
-	// TODO: image を保存
+
+	// cache ISU image
+	err = ioutil.WriteFile("../public/assets/image/"+jiaIsuUUID+".jpg", image, 0644)
+	if err != nil {
+		c.Logger().Errorf("image save error: %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
 
 	tx, err := db.Beginx()
 	if err != nil {
@@ -656,7 +669,7 @@ func postIsu(c echo.Context) error {
 
 	_, err = tx.Exec("INSERT INTO `isu`"+
 		"	(`jia_isu_uuid`, `name`, `image`, `jia_user_id`) VALUES (?, ?, ?, ?)",
-		jiaIsuUUID, isuName, image, jiaUserID)
+		jiaIsuUUID, isuName, "", jiaUserID)
 	if err != nil {
 		mysqlErr, ok := err.(*mysql.MySQLError)
 
