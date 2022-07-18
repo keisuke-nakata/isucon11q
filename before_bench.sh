@@ -4,6 +4,7 @@ readonly NGINX_ERROR_LOG=/var/log/nginx/error.log
 readonly MYSQL_SLOW_LOG=/var/log/mysql/mysql-slow.log
 readonly MYSQL_CONF_DIR=/etc/mysql/mariadb.conf.d
 readonly NGINX_CONF_DIR=/etc/nginx
+readonly MEMCACHED_CONF_DIR=/etc
 
 ###
 # refresh logs
@@ -31,6 +32,10 @@ sudo systemctl restart mysqld.service
 # for file in $(find $MYSQL_DEPLOY_DIR -type f); do
 #   mysql --force isuconp < $file
 # done
+
+# deploy memcached
+sudo cp $REPO_ROOT_DIR/conf/memcached/memcached.conf $MEMCACHED_CONF_DIR/
+sudo systemctl restart memcached
 
 # deploy nginx
 sudo cp $REPO_ROOT_DIR/conf/nginx/nginx.conf $NGINX_CONF_DIR/

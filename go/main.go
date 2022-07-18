@@ -181,14 +181,6 @@ type JIAServiceRequest struct {
 	IsuUUID       string `json:"isu_uuid"`
 }
 
-type TmpTrendRecord struct {
-	JIAIsuUUID string    `db:"jia_isu_uuid"`
-	Timestamp  time.Time `db:"timestamp"`
-	Condition  string    `db:"condition"`
-	ID         int       `db:"id"`
-	Character  string    `db:"character"`
-}
-
 func getEnv(key string, defaultValue string) string {
 	val := os.Getenv(key)
 	if val != "" {
@@ -327,6 +319,11 @@ func getJIAServiceURL(tx *sqlx.Tx) string {
 }
 
 func warmup() error {
+	err := memcacheClient.DeleteAll()
+	if err != nil {
+		return err
+	}
+
 	// last isu condition
 	lastIsuConditions := make([]LastIsuCondition, 0, 100)
 	query := "" +
@@ -348,7 +345,7 @@ func warmup() error {
 		"  `condition`, " +
 		"  `character` " +
 		" FROM r WHERE rn = 1 ORDER BY `character`, rev_timestamp;"
-	err := db.Select(&lastIsuConditions, query)
+	err = db.Select(&lastIsuConditions, query)
 	if err != nil {
 		return err
 	}
@@ -662,12 +659,11 @@ func postIsu(c echo.Context) error {
 
 	// cache ISU image
 	key := jiaIsuUUID + ".icon"
-	memcacheClient.Set(&memcache.Item{Key: key, Value: image, Expiration: 60})
-	// err = ioutil.WriteFile("../public/assets/image/"+jiaIsuUUID+".jpg", image, 0644)
-	// if err != nil {
-	// 	c.Logger().Errorf("image save error: %v", err)
-	// 	return c.NoContent(http.StatusInternalServerError)
-	// }
+	err = memcacheClient.Set(&memcache.Item{Key: key, Value: image, Expiration: 60})
+	if err != nil {
+		c.Logger().Error("memcache set error: %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
 
 	tx, err := db.Beginx()
 	if err != nil {
@@ -806,7 +802,9 @@ func getIsuIcon(c echo.Context) error {
 	cacheIcon, err := memcacheClient.Get(key)
 	if err != nil { // cache hit
 		image = cacheIcon.Value
+		c.Logger().Error("cache hit GET /api/isu/%v/icon", jiaIsuUUID)
 	} else { // cache miss
+		c.Logger().Error("cache miss GET /api/isu/%v/icon", jiaIsuUUID)
 		err = db.Get(&image, "SELECT `image` FROM `isu` WHERE `jia_user_id` = ? AND `jia_isu_uuid` = ?",
 			jiaUserID, jiaIsuUUID)
 		if err != nil {
@@ -819,11 +817,6 @@ func getIsuIcon(c echo.Context) error {
 		}
 		// cache ISU image
 		memcacheClient.Set(&memcache.Item{Key: key, Value: image, Expiration: 60})
-		// err = ioutil.WriteFile("../public/assets/image/"+jiaIsuUUID+".jpg", image, 0644)
-		// if err != nil {
-		// 	c.Logger().Errorf("image save error: %v", err)
-		// 	return c.NoContent(http.StatusInternalServerError)
-		// }
 	}
 
 	return c.Blob(http.StatusOK, "", image)
