@@ -800,10 +800,7 @@ func getIsuIcon(c echo.Context) error {
 
 	key := jiaIsuUUID + ".icon"
 	cacheIcon, err := memcacheClient.Get(key)
-	if err != nil { // cache hit
-		image = cacheIcon.Value
-		c.Logger().Error("cache hit GET /api/isu/%v/icon", jiaIsuUUID)
-	} else { // cache miss
+	if err != nil { // cache miss
 		c.Logger().Error("cache miss GET /api/isu/%v/icon", jiaIsuUUID)
 		err = db.Get(&image, "SELECT `image` FROM `isu` WHERE `jia_user_id` = ? AND `jia_isu_uuid` = ?",
 			jiaUserID, jiaIsuUUID)
@@ -817,6 +814,9 @@ func getIsuIcon(c echo.Context) error {
 		}
 		// cache ISU image
 		memcacheClient.Set(&memcache.Item{Key: key, Value: image, Expiration: 60})
+	} else { // cache miss
+		image = cacheIcon.Value
+		c.Logger().Error("cache hit GET /api/isu/%v/icon", jiaIsuUUID)
 	}
 
 	return c.Blob(http.StatusOK, "", image)
