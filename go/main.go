@@ -359,13 +359,13 @@ func warmup() error {
 
 	// isu icon
 	isus := make([]Isu, 0, 100)
-	query = "SELECT jia_isu_uuid, image FROM isu;"
+	query = "SELECT jia_user_id, jia_isu_uuid, image FROM isu;"
 	err = db.Select(&isus, query)
 	if err != nil {
 		return err
 	}
 	for _, isu := range isus {
-		key := isu.JIAIsuUUID + ".icon"
+		key := isu.JIAUserID + "." + isu.JIAIsuUUID + ".icon"
 		memcacheClient.Set(&memcache.Item{Key: key, Value: isu.Image, Expiration: 60})
 	}
 
@@ -658,7 +658,7 @@ func postIsu(c echo.Context) error {
 	}
 
 	// cache ISU image
-	key := jiaIsuUUID + ".icon"
+	key := jiaUserID + "." + jiaIsuUUID + ".icon"
 	err = memcacheClient.Set(&memcache.Item{Key: key, Value: image, Expiration: 60})
 	if err != nil {
 		c.Logger().Error("memcache set error: %v", err)
@@ -798,7 +798,7 @@ func getIsuIcon(c echo.Context) error {
 
 	var image []byte
 
-	key := jiaIsuUUID + ".icon"
+	key := jiaUserID + "." + jiaIsuUUID + ".icon"
 	cacheIcon, err := memcacheClient.Get(key)
 	if err != nil { // cache miss
 		c.Logger().Error("cache miss GET /api/isu/%v/icon", jiaIsuUUID)
